@@ -143,7 +143,7 @@ if 'Arg' in filnam:
     # add a profile_id for erddap for Argonauts
     ds['profile_index'] = xr.DataArray(np.arange(len(ds.time)), dims='time')
     ds['profile_index'].attrs['cf_role'] = 'profile_id'
-    ds['profile_index'].encoding['dtype'] = 'i4'  # don't output as long in
+    ds['profile_index'].encoding['dtype'] = 'i4'  # don't output as long int
     ds.attrs['cdm_profile_variables'] = 'profile_index'
 
 
@@ -157,7 +157,10 @@ ds.attrs['geospatial_lon_min'] = ds['longitude'].min().values
 ds.attrs['geospatial_lon_max'] = ds['longitude'].max().values
 for k in ['date_created', 'time_coverage_start', 'time_coverage_end']:
     ds.attrs[k] = pd.Timestamp(ds.attrs[k]).isoformat()
-ds.attrs['time_coverage_duration'] = (pd.Timestamp(ds.attrs['time_coverage_end']) - pd.Timestamp(ds.attrs['time_coverage_start'])).isoformat()
-ds.attrs['time_coverage_resolution'] = pd.Timedelta(ds.time.diff(dim='time').median().values).isoformat()
+ds.attrs['time_coverage_duration'] = (
+    pd.Timestamp(ds.attrs['time_coverage_end']) -
+    pd.Timestamp(ds.attrs['time_coverage_start'])).isoformat()
+ds.attrs['time_coverage_resolution'] = pd.Timedelta(
+    ds.time.diff(dim='time').median().values).isoformat()
 ds['longitude']
 ds.to_netcdf(fildir + 'clean/' + filnam)
