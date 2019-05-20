@@ -137,6 +137,7 @@ elif filnam == 'UFK14ArgE306aqd-trm.nc':
 elif filnam == 'UFK14ArgE1495aqd-trm.nc':
     ds.attrs['MOORING'] = 'UFK14S2'
 ds.attrs['id'] = filnam.split('.')[0]
+ds.attrs['project'] = 'CMG_Portal'
 
 if 'Arg' in filnam:
     # add a profile_id for erddap for Argonauts
