@@ -123,6 +123,19 @@ for d in ds.data_vars:
 # ds.attrs['infoUrl'] = 'https://www.usgs.gov/'
 # ds.attrs['institution'] = 'USGS'
 
+# CF: Coordinate variables cannot have _FillValue
+for d in ds.coords:
+    ds[d].encoding['_FillValue'] = None
+# no _FillValue for lat, lon just to be safe
+for d in ['latitude', 'longitude']:
+    ds[d].encoding['_FillValue'] = None
+
+# CF: Add axis attr
+ds['time'].attrs['axis'] = 'T'
+ds['z'].attrs['axis'] = 'Z'
+ds['longitude'].attrs['axis'] = 'X'
+ds['latitude'].attrs['axis'] = 'Y'
+
 # ADD STUFF FOR PORTAL COMPATIBILITY
 # see https://github.com/USGS-CMG/usgs-cmg-portal/issues/289
 ds.attrs['experiment_id'] = 'UFK14'
