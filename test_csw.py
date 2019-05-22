@@ -4,7 +4,7 @@ from owslib.csw import CatalogueServiceWeb
 from owslib import fes
 import numpy as np
 # %%
-#endpoint = 'http://geoport.whoi.edu/csw'
+# endpoint = 'http://geoport.whoi.edu/csw'
 endpoint = 'http://gamone.whoi.edu/csw'
 #endpoint = 'http://data.nodc.noaa.gov/geoportal/csw'
 #endpoint = 'http://data.ioos.us/csw'
@@ -21,8 +21,8 @@ try:
 except:
     print('GetDomain not supported')
 # %%
-# val = 'Grand Bay'
-val = 'Florida'
+val = 'Grand Bay'
+# val = 'Florida'
 #val = 'William Jones'
 filter1 = fes.PropertyIsLike(propertyname='apiso:AnyText',literal=('*%s*' % val),
                         escapeChar='\\',wildCard='*',singleChar='?')
