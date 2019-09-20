@@ -6,6 +6,7 @@ import numpy as np
 # %%
 # endpoint = 'http://geoport.whoi.edu/csw'
 endpoint = 'http://gamone.whoi.edu/csw'
+endpoint = 'http://geoport.usgs.esipfed.org/csw'
 #endpoint = 'http://data.nodc.noaa.gov/geoportal/csw'
 #endpoint = 'http://data.ioos.us/csw'
 #endpoint = 'https://dev-catalog.ioos.us/csw'
@@ -21,14 +22,15 @@ try:
 except:
     print('GetDomain not supported')
 # %%
-val = 'Grand Bay'
-# val = 'Florida'
+# val = 'Grand Bay'
+val = 'Florida'
 #val = 'William Jones'
 filter1 = fes.PropertyIsLike(propertyname='apiso:AnyText',literal=('*%s*' % val),
                         escapeChar='\\',wildCard='*',singleChar='?')
-filter_list = [ filter1 ]
 # %%
-csw.getrecords2(constraints=filter_list,maxrecords=100,esn='full')
+
+# csw.results
+csw.getrecords2(constraints=[ filter1 ],maxrecords=100,esn='full')
 print(len(csw.records.keys()))
 for rec in list(csw.records.keys()):
-    print(csw.records[rec].title)
+    print(csw.records[rec].identifier)
