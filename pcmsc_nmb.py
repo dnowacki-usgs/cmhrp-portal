@@ -25,10 +25,10 @@ fildir = 'pcmsc/NMBTimeSeriesData/'
 
 # %%
 
-ds = xr.open_dataset(fildir + filnam, decode_times=False, decode_coords=False).load()
+ds = xr.open_dataset(fildir + filnam, decode_times=False).load()
 ds.close()
 ds = stglib.utils.epic_to_cf_time(ds)
-print(filnam)
+
 if filnam == 'NMB14M1T01awWvs-p.nc':
     # some bad data at the ends of the file...
     ds = ds.sel(time=slice('2014-11-10 17:30', '2015-04-09 21:00'))
@@ -54,8 +54,11 @@ ds.attrs['title'] = (f'Time-Series data on currents, waves and sediment '
                       ).format(ds.attrs['Site'])
 
 # CF Compliance
-ds = ds.squeeze()  # don't index by latitude and longitude
-ds['z'] = ds['depth'] - ds.attrs['initial_instrument_height']
+# ds = ds.squeeze()  # don't index by latitude and longitude
+if filnam == 'NMB15M1T03aqd.nc':
+    ds = ds.rename({'depth': 'z'})
+else:
+    ds['z'] = ds['depth'] - ds.attrs['initial_instrument_height']
 ds['z'].attrs['positive'] = 'down'
 
 ds.attrs['Conventions'] = 'CF-1.6, ACDD-1.3'
@@ -105,11 +108,17 @@ for k in standard_names:
         if 'standard_name' not in ds[k].attrs:
             ds[k].attrs['standard_name'] = standard_names[k]
 
-ds['time'].encoding['dtype'] = 'i4'
-ds['time'].attrs['standard_name'] = 'time'
-
 ds['feature_type_instance'] = filnam.split('.')[0]
 ds['feature_type_instance'].attrs['cf_role'] = 'timeseries_id'
+
+if filnam == 'NMB15M1T03aqd.nc':
+    # add a profile_id for erddap for AQDs
+    ds['profile_index'] = xr.DataArray(np.arange(len(ds.time)), dims='time')
+    ds['profile_index'].attrs['cf_role'] = 'profile_id'
+    ds['profile_index'].encoding['dtype'] = 'i4'  # don't output as long int
+    ds.attrs['cdm_profile_variables'] = 'profile_index'
+    # need to make a depth variable for ERDDAP
+    ds['depth'] = xr.DataArray(ds.attrs['nominal_instrument_depth'])
 
 # ADD STUFF FOR PORTAL COMPATIBILITY
 # see https://github.com/USGS-CMG/usgs-cmg-portal/issues/289
@@ -123,18 +132,23 @@ ds.attrs['project'] = 'CMG_Portal'
 # ERDDAP
 ds.attrs['cdm_timeseries_variables'] = 'feature_type_instance, latitude, longitude'
 
-# for d in ds:
-#     print(d)
-#     if 'coordinates' in ds[d].attrs:
-#         print(d, 'has coords')
-#         ds[d].attrs.pop('coordinates')
-# for d in ds.data_vars:
-#     if d not in ['water_depth',
-#                  'feature_type_instance',
-#                  'z',
-#                  'latitude',
-#                  'longitude']:
-#         ds[d].attrs['coordinates'] = 'time z latitude longitude'
+def remove_problematic_attrs(ds):
+    for variable in ds.variables.values():
+        if 'coordinates' in variable.attrs:
+            del variable.attrs['coordinates']
+
+remove_problematic_attrs(ds)
+print(ds.data_vars)
+for d in ds.data_vars:
+    if d not in ['water_depth',
+                 'feature_type_instance',
+                 'z',
+                 'latitude',
+                 'longitude']:
+        if 'z' in ds[d].coords:
+            ds[d].attrs['coordinates'] = 'time z latitude longitude'
+        else:
+            ds[d].attrs['coordinates'] = 'time latitude longitude'
 
 # ACDD stuff
 portal.acdd_attrs(ds)
@@ -151,5 +165,14 @@ ds.attrs['naming_authority'] = 'gov.usgs.cmgp'
 ds.attrs['institution'] = 'USGS Coastal and Marine Geology Program'
 
 ds['time'].attrs['long_name'] = 'time of measurement'
+ds['time'].encoding['dtype'] = 'i4'
+ds['time'].attrs['standard_name'] = 'time'
+
+# check for 0-length attributes (this causes problems with ERDDAP) and set to an empty string
+for k in ds.attrs:
+    if isinstance(ds.attrs[k], np.ndarray) and not ds.attrs[k].size:
+        print (k, ds.attrs[k].dtype, ds.attrs[k].size)
+        print(ds.attrs[k])
+        ds.attrs[k] = ''
 
 ds.to_netcdf(fildir + 'clean/' + filnam)

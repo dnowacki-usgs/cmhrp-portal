@@ -4,6 +4,7 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 import sys
+import portal
 # %%
 if len(sys.argv) < 2:
     raise SystemExit('Please specify a filename')
@@ -118,7 +119,10 @@ for d in ds.data_vars:
                  'z',
                  'latitude',
                  'longitude']:
-        ds[d].attrs['coordinates'] = 'time z latitude longitude'
+        if 'z' in ds[d].coords:
+            ds[d].attrs['coordinates'] = 'time z latitude longitude'
+        else:
+            ds[d].attrs['coordinates'] = 'time latitude longitude'
 
 # ds.attrs['infoUrl'] = 'https://www.usgs.gov/'
 # ds.attrs['institution'] = 'USGS'
@@ -154,11 +158,14 @@ ds.attrs['project'] = 'CMG_Portal'
 
 if 'Arg' in filnam:
     # add a profile_id for erddap for Argonauts
+    # need to make a backup of the time attrs and then reassign; see
+    # https://github.com/pydata/xarray/issues/2245
+    attrsbak = ds['time'].attrs
     ds['profile_index'] = xr.DataArray(np.arange(len(ds.time)), dims='time')
+    ds['time'].attrs = attrsbak
     ds['profile_index'].attrs['cf_role'] = 'profile_id'
     ds['profile_index'].encoding['dtype'] = 'i4'  # don't output as long int
     ds.attrs['cdm_profile_variables'] = 'profile_index'
-
 
 portal.acdd_attrs(ds)
 
@@ -169,5 +176,5 @@ ds.attrs['time_coverage_duration'] = (
     pd.Timestamp(ds.attrs['time_coverage_start'])).isoformat()
 ds.attrs['time_coverage_resolution'] = pd.Timedelta(
     ds.time.diff(dim='time').median().values).isoformat()
-ds['longitude']
+
 ds.to_netcdf(fildir + 'clean/' + filnam)
