@@ -7,6 +7,7 @@ import sys
 import stglib
 # import matplotlib.pyplot as plt
 import portal
+from compliance_checker.runner import ComplianceChecker, CheckSuite
 # %load_ext autoreload
 # %autoreload 2
 # %%
@@ -163,7 +164,7 @@ ds.attrs['time_coverage_resolution'] = pd.Timedelta(
 ds.attrs['standard_name_vocabulary'] = 'CF Standard Name Table v66'
 ds.attrs['naming_authority'] = 'gov.usgs.cmgp'
 ds.attrs['institution'] = 'USGS Coastal and Marine Geology Program'
-
+ds['wh_4061']
 ds['time'].attrs['long_name'] = 'time of measurement'
 ds['time'].encoding['dtype'] = 'i4'
 ds['time'].attrs['standard_name'] = 'time'
@@ -174,5 +175,27 @@ for k in ds.attrs:
         print (k, ds.attrs[k].dtype, ds.attrs[k].size)
         print(ds.attrs[k])
         ds.attrs[k] = ''
-
+ds['wh_4061']
 ds.to_netcdf(fildir + 'clean/' + filnam)
+
+# %%
+# Load all available checker classes
+check_suite = CheckSuite()
+check_suite.load_all_available_checkers()
+path = fildir + 'clean/' + filnam
+print(path)
+# path = '/Users/dnowacki/Downloads/NMB14M1T01awWvs-p.nc'
+# path = '/Users/dnowacki/Downloads/NMB15SCW01rbrWvs-p.nc'
+checker_names = ['cf:1.6',
+                #'acdd'
+                ]
+
+return_value, errors = ComplianceChecker.run_checker(path,
+                                                     checker_names,
+                                                     0,
+                                                     'normal'
+                                                     # verbose,
+                                                     # criteria,
+                                                     # output_filename=output_filename,
+                                                     # output_format=output_format
+                                                     )
