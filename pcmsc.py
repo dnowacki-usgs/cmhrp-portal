@@ -1,12 +1,14 @@
-import xarray as xr
-import pandas as pd
-import numpy as np
-import sys
-import stglib
-import portal
 import os
-import netCDF4
+import sys
 from pathlib import Path
+
+import netCDF4
+import numpy as np
+import pandas as pd
+import stglib
+import xarray as xr
+
+import portal
 
 
 def add_title_history(ds, doi, title, summary):

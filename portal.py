@@ -1,5 +1,6 @@
-import numpy as np
 import subprocess
+
+import numpy as np
 
 
 def check_compliance_system(f, test):
