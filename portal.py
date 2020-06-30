@@ -131,10 +131,10 @@ def assign_standard_names(ds):
     if "P_1" in ds:
         if ds["P_1"].attrs["units"] == "DB":
             ds["P_1"].attrs["units"] = "dbar"
-    
+
     if "P_1294" in ds:
-        if ds['P_1294'].attrs['units'].lower() == 'deca-pascals':
-            ds['P_1294'].attrs['units'] = 'dekapascals'
+        if ds["P_1294"].attrs["units"].lower() == "deca-pascals":
+            ds["P_1294"].attrs["units"] = "dekapascals"
 
     # rename attributes with a '.' in them (causes CF warning)
     for k in list(
@@ -149,7 +149,9 @@ def assign_standard_names(ds):
 def ensure_attr_dtype(ds):
     for k in ds:
         for a in ds[k].attrs:
-            if isinstance(ds[k].attrs[a], np.ndarray) or isinstance(ds[k].attrs[a], np.float64):
+            if isinstance(ds[k].attrs[a], np.ndarray) or isinstance(
+                ds[k].attrs[a], np.float64
+            ):
                 if ds[k].attrs[a].dtype != ds[k].dtype:
                     # this typically happens on valid_range being a different type than its variable
                     # so promote dtype of valid_range attr to be the same as its var
