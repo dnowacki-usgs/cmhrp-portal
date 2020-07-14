@@ -16,7 +16,7 @@ def add_title_history(ds, doi, title, summary):
         titletxt = title + " - " + ds.attrs["id"]
     else:
         titletxt = title
-    
+
     if "title" not in ds.attrs:
         ds.attrs["title"] = titletxt
     else:
@@ -69,8 +69,10 @@ def convert(f, doi, title, summary):
     ds = ds.squeeze()
     if "depth" in ds:  # depth not in waves files usually
         ds = ds.rename({"depth": "z"})
-        ds["z"].attrs["positive"] = "down"
-        ds["z"].attrs["long_name"] = "depth of sensor below mean water level"
+        if "positive" not in ds["z"].attrs:
+            ds["z"].attrs["positive"] = "down"
+        if "long_name" not in ds["z"].attrs:
+            ds["z"].attrs["long_name"] = "depth of sensor below mean water level"
 
     ds.attrs["Conventions"] = "CF-1.6, ACDD-1.3"
 
@@ -89,8 +91,10 @@ def convert(f, doi, title, summary):
     # CF: Add axis attr
     ds["time"].attrs["axis"] = "T"
     if "z" in ds:
-        ds["z"].attrs["axis"] = "Z"
-        ds["z"].attrs["units"] = "m"
+        if "axis" not in ds["z"].attrs:
+            ds["z"].attrs["axis"] = "Z"
+        if "units" not in ds["z"].attrs:
+            ds["z"].attrs["units"] = "m"
     ds["longitude"].attrs["axis"] = "X"
     ds["latitude"].attrs["axis"] = "Y"
 
@@ -111,7 +115,7 @@ def convert(f, doi, title, summary):
     ds.attrs["datasetID"] = os.path.split(f)[1].split(".")[0]
     ds.attrs["project"] = "CMG_Portal"
     ds = add_title_history(ds, doi, title, summary)
-    
+
     # ERDDAP
     ds.attrs["cdm_timeseries_variables"] = "feature_type_instance, latitude, longitude"
 

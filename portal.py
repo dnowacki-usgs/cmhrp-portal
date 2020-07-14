@@ -107,8 +107,11 @@ def assign_standard_names(ds):
             ds["T_28"].attrs["units"] = "degree_C"
 
     if "Tx_1211" in ds:
-        if (ds["Tx_1211"].attrs["units"] == "C") or (
-            ds["Tx_1211"].attrs["units"] == "degrees.C"
+        if (
+            (ds["Tx_1211"].attrs["units"] == "C")
+            or (ds["Tx_1211"].attrs["units"] == "degrees.C")
+            or (ds["Tx_1211"].attrs["units"] == "Deg. C")
+            or (ds["Tx_1211"].attrs["units"] == "degrees C")
         ):
             ds["Tx_1211"].attrs["units"] = "degree_C"
 
