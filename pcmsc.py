@@ -12,10 +12,15 @@ import portal
 
 
 def add_title_history(ds, doi, title, summary):
-    if "title" not in ds.attrs:
-        ds.attrs["title"] = title
+    if "id" in ds.attrs:
+        titletxt = title + " - " + ds.attrs["id"]
     else:
-        ds.attrs["title"] = title + "; Original title: " + ds.attrs["title"]
+        titletxt = title
+    
+    if "title" not in ds.attrs:
+        ds.attrs["title"] = titletxt
+    else:
+        ds.attrs["title"] = titletxt + "; Original title: " + ds.attrs["title"]
 
     if "history" in ds.attrs and (len(ds.attrs["history"]) > 0):
         histtext = ds.attrs["history"]
@@ -30,11 +35,12 @@ def add_title_history(ds, doi, title, summary):
     )
 
     if "summary" not in ds.attrs:
-        ds.attrs["summary"] = """"""
+        ds.attrs["summary"] = summary
     else:
         ds.attrs["summary"] = summary + "; Original summary: " + ds.attrs["summary"]
 
-    ds.attrs["keywords"] = "oceanography, sediment transport"
+    if "keywords" not in ds.attrs:
+        ds.attrs["keywords"] = "oceanography, sediment transport"
 
     return ds
 
@@ -59,7 +65,6 @@ def convert(f, doi, title, summary):
 
     # round time to the nearest second to avoid weird netCDF datetime64 error
     ds["time"] = ds["time"].dt.round(freq="S")
-    ds = add_title_history(ds, doi, title, summary)
 
     ds = ds.squeeze()
     if "depth" in ds:  # depth not in waves files usually
@@ -105,7 +110,8 @@ def convert(f, doi, title, summary):
     ds.attrs["id"] = os.path.split(f)[1].split(".")[0]
     ds.attrs["datasetID"] = os.path.split(f)[1].split(".")[0]
     ds.attrs["project"] = "CMG_Portal"
-
+    ds = add_title_history(ds, doi, title, summary)
+    
     # ERDDAP
     ds.attrs["cdm_timeseries_variables"] = "feature_type_instance, latitude, longitude"
 

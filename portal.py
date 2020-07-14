@@ -137,6 +137,11 @@ def assign_standard_names(ds):
         if ds["P_1294"].attrs["units"].lower() == "deca-pascals":
             ds["P_1294"].attrs["units"] = "dekapascals"
 
+    if "C_50" in ds:
+        if ds["C_50"].attrs["units"] == "mmho/cm":
+            # mho is an "unaccepted special name for an SI unit"
+            ds["C_50"].attrs["units"] = "mS cm-1"
+
     # rename attributes with a '.' in them (causes CF warning)
     for k in list(
         ds.attrs
