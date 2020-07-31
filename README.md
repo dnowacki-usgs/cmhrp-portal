@@ -24,7 +24,7 @@
    1. `cd /opt/docker/harvest/usgs-cmg-portal/catalog_harvest`
    1. `git pull`
    1. `conda activate IOOS`
-   1. `sudo python get_ts_iso.py`
+   1. `sudo python get_ts_iso.py` (you may need to specify the full path to the python binary)
    1. After allowing an hour or two for the CSW to harvest, check for your new dataset using [test_csw.py](https://github.com/dnowacki-usgs/cmhrp-portal/blob/master/test_csw.py)
 
 # doi:10.5066/F7VD6XBF
