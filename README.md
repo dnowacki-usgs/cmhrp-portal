@@ -21,6 +21,8 @@
    1. `bash do_cat`
 1. Add data to the CSW
    1. Add the THREDDS catalog URL to [get_ts_iso.py](https://github.com/USGS-CMG/usgs-cmg-portal/blob/master/catalog_harvest/get_ts_iso.py).
+   1. `cd /opt/docker/harvest/usgs-cmg-portal/catalog_harvest`
+   1. `git pull`
    1. `conda activate IOOS`
    1. `sudo python get_ts_iso.py`
    1. After allowing an hour or two for the CSW to harvest, check for your new dataset using [test_csw.py](https://github.com/dnowacki-usgs/cmhrp-portal/blob/master/test_csw.py)
