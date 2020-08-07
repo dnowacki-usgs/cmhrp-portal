@@ -37,7 +37,10 @@ standard_names = {
     "USTD_4097": "eastward_sea_water_velocity",
     "VSTD_4098": "northward_sea_water_velocity",
     "WSTD_4099": "upward_sea_water_velocity",
+    "CS_300": "sea_water_speed",
+    "CD_310": "sea_water_velocity_to_direction",
     "T_28": "sea_water_temperature",
+    "T_20": "sea_water_temperature",
     "Tx_1211": "sea_water_temperature",
     "C_50": "sea_water_electrical_conductivity",
     "C_51": "sea_water_electrical_conductivity",
@@ -105,6 +108,10 @@ def assign_standard_names(ds):
     if "T_28" in ds:
         if ds["T_28"].attrs["units"] == "C":
             ds["T_28"].attrs["units"] = "degree_C"
+            
+    if "T_20" in ds:
+        if ds["T_20"].attrs["units"] == "C":
+            ds["T_20"].attrs["units"] = "degree_C"
 
     if "Tx_1211" in ds:
         if (
