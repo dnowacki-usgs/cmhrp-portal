@@ -46,20 +46,31 @@ def add_title_history(ds, doi, title, summary):
 
 
 def convert(f, doi, title, summary):
-    try:
-        ds = xr.load_dataset(f, decode_times=False)
-        ds = stglib.utils.epic_to_cf_time(ds)
-    except:
-        # deal with 2D time (burst) data sets
-        with netCDF4.Dataset(f, "r+") as nc:
-            time = nc["time"][:]
-        # xarray won't open a dataset with vars and coords of the same name
-        ds = xr.open_dataset(f, decode_times=False, drop_variables="time")
-        # assign time to be the first of the burst
-        ds["time"] = xr.DataArray(
-            stglib.utils.epic_to_datetime(time[:, 0], ds.time2[:, 0].values),
-            dims="time",
-        )
+    if f[-4:] == '.csv':
+        df = pd.read_csv(f)
+        df['time'] = pd.DatetimeIndex(df['DATETAG EST'] + ' ' + df['TIMETAG EST']) + pd.Timedelta('5h') # EST to UTC
+        df.set_index('time', inplace=True)
+        ds = df.to_xarray()
+        ds['longitude'] = xr.DataArray([ds['Longitude'][0]], dims='longitude')
+        ds['latitude'] = xr.DataArray([ds['Latitude'][0]], dims='latitude')
+        ds = ds.drop(['Longitude', 'Latitude'])
+        for k in ds:
+            ds = ds.rename({k: k.replace(' ', '_')})
+    else:
+        try:
+            ds = xr.load_dataset(f, decode_times=False)
+            ds = stglib.utils.epic_to_cf_time(ds)
+        except:
+            # deal with 2D time (burst) data sets
+            with netCDF4.Dataset(f, "r+") as nc:
+                time = nc["time"][:]
+            # xarray won't open a dataset with vars and coords of the same name
+            ds = xr.open_dataset(f, decode_times=False, drop_variables="time")
+            # assign time to be the first of the burst
+            ds["time"] = xr.DataArray(
+                stglib.utils.epic_to_datetime(time[:, 0], ds.time2[:, 0].values),
+                dims="time",
+            )
 
     dvorig = ds.data_vars
 
@@ -78,7 +89,7 @@ def convert(f, doi, title, summary):
 
     if "lon" in ds and "lat" in ds and "longitude" not in ds and "latitude" not in ds:
         ds = ds.rename({"lon": "longitude", "lat": "latitude"})
-    else:
+    elif "latitude" not in ds and "longitude" not in ds:
         ds["longitude"] = xr.DataArray([ds.attrs["longitude"]], dims="longitude")
         ds["latitude"] = xr.DataArray([ds.attrs["latitude"]], dims="latitude")
 
@@ -178,6 +189,9 @@ def convert(f, doi, title, summary):
 
     dvfinal = ds.data_vars
     Path(os.path.split(f)[0] + "/clean").mkdir(parents=True, exist_ok=True)
-    ds.to_netcdf(os.path.split(f)[0] + "/clean/" + os.path.split(f)[1])
+    if f[-4:] == '.csv':
+        ds.to_netcdf(os.path.split(f)[0] + "/clean/" + os.path.split(f)[1][:-4] + '.nc')
+    else:
+        ds.to_netcdf(os.path.split(f)[0] + "/clean/" + os.path.split(f)[1])
 
     return os.path.split(f)[1], "difference in data_vars:", (set(dvorig) ^ set(dvfinal))
