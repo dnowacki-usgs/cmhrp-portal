@@ -45,8 +45,49 @@ def add_title_history(ds, doi, title, summary):
     return ds
 
 
-def convert(f, doi, title, summary):
+def spcmsc_assign(ds):
+    for var in ds.data_vars:
+        if "QF_" not in var:
+            print(var)
+            if np.issubdtype(ds[var].dtype, np.integer):
+                ds[var] = ds[var].astype(float)
+        
+        if "QF_" in var:
+            ds[var].attrs["long_name"] = "A numeric value that indicates the quality of the reported data"
+            ds[var].attrs["comment"] = "Flag 1 = QC has been performed and element appears to be correct, Flag 2 = QC has been performed and element appears to be probably good with other elements, Flag 3 = QC has been performed and element appears to be probably bad, Flag 4 = QC has been performed and element appears to be bad, Flag 5 = the value has been modified as a result of QC, Flag 9 = The value of the element is missing."
+            
+            if ds[var].dtype == object:
+                ds[var].encoding['dtype'] = 'S1'
+
+                
+    for var, qf in zip(['TW_C',  'PRESS_dbar', 'SALINITY',    'pHT',    'CO2ppm', 'PRESIRGA_mbar', 'OXYGEN_mg_L', 'PAR_microEinsteins'],
+                       ['QF_TW', 'QF_PRESS',   'QF_SALINITY', 'QF_pHT', 'QF_CO2', 'QF_PRESIRGA',   'QF_OXYGEN',   'QF_PAR']):
+        if ds[qf].dtype == int:
+            ds[var][ds[qf] != 1] = np.nan
+        elif ds[qf].dtype == object:
+            goods = []
+            for x in ds[qf].values:
+                if '1' in x:
+                    goods.append(True)
+                else:
+                    goods.append(False)
+            goods = np.array(goods)
+            ds[var][~goods] = np.nan
+            
+    ds["PRESIRGA_mbar"].attrs["long_name"] = "pressure in the sampling chamber of the infrared gas analyzer of the CO2 sensor"
+    ds["PRESIRGA_mbar"].attrs["units"] = "mbar"
+    ds["CO2ppm"].attrs["long_name"] = "concentration of CO2 in parts per million by volume."
+    ds["CO2ppm"].attrs["units"] = "ppm"
+    ds["PAR_microEinsteins"].attrs["long_name"] = "concentration of photosynthetically available radiation"
+    ds["PAR_microEinsteins"].attrs["units"] = "microEinsteins"
+    
+    return ds
+
+
+def convert(f, doi, title, summary, experiment_id=None, MOORING=None):
+    csv = False
     if f[-4:] == '.csv':
+        csv = True
         df = pd.read_csv(f)
         df['time'] = pd.DatetimeIndex(df['DATETAG EST'] + ' ' + df['TIMETAG EST']) + pd.Timedelta('5h') # EST to UTC
         df.set_index('time', inplace=True)
@@ -55,7 +96,7 @@ def convert(f, doi, title, summary):
         ds['latitude'] = xr.DataArray([ds['Latitude'][0]], dims='latitude')
         ds = ds.drop(['Longitude', 'Latitude'])
         for k in ds:
-            ds = ds.rename({k: k.replace(' ', '_')})
+            ds = ds.rename({k: k.replace(' ', '_').replace('(', '').replace(')', '').replace('/','_')})
     else:
         try:
             ds = xr.load_dataset(f, decode_times=False)
@@ -108,6 +149,10 @@ def convert(f, doi, title, summary):
             ds["z"].attrs["units"] = "m"
     ds["longitude"].attrs["axis"] = "X"
     ds["latitude"].attrs["axis"] = "Y"
+    
+    if csv:
+        print(ds)
+        ds = spcmsc_assign(ds)
 
     ds = portal.assign_standard_names(ds)
 
@@ -119,7 +164,12 @@ def convert(f, doi, title, summary):
 
     # ADD STUFF FOR PORTAL COMPATIBILITY
     # see https://github.com/USGS-CMG/usgs-cmg-portal/issues/289
-    ds.attrs["experiment_id"] = os.path.split(f)[1][0:5]
+    if csv:
+        ds.attrs["experiment_id"] = experiment_id
+        if "MOORING" not in ds.attrs:
+            ds.attrs["MOORING"] = MOORING
+    else:
+        ds.attrs["experiment_id"] = os.path.split(f)[1][0:5]
     ds.attrs["metadata_link"] = "https://doi.org/10.5066/" + doi
     # already have MOORING
     ds.attrs["id"] = os.path.split(f)[1].split(".")[0]
@@ -173,14 +223,17 @@ def convert(f, doi, title, summary):
     ds.attrs["naming_authority"] = "gov.usgs.cmgp"
     ds.attrs["institution"] = "USGS Coastal and Marine Geology Program"
 
-    ds["time"].attrs["long_name"] = "time of measurement"
-    ds["time"].encoding["dtype"] = "i4"
-    ds["time"].attrs["standard_name"] = "time"
-
     if len(ds.dims) == 1:
         ds.attrs["featureType"] = "timeSeries"
     elif len(ds.dims) == 2:
         ds.attrs["featureType"] = "timeSeriesProfile"
+        ds["profile_index"] = xr.DataArray(range(len(ds["time"])), dims="time")
+        ds["profile_index"].attrs["cf_role"] = "profile_id"
+        ds["profile_index"].encoding["dtype"] = "i4"
+    
+    ds["time"].attrs["long_name"] = "time of measurement"
+    ds["time"].encoding["dtype"] = "i4"
+    ds["time"].attrs["standard_name"] = "time"
 
     # check for 0-length attributes (this causes problems with ERDDAP) and set to an empty string
     for k in ds.attrs:

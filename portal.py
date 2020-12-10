@@ -23,7 +23,7 @@ def acdd_attrs(ds):
 standard_names = {
     "P_1": "sea_water_pressure",
     "P_1294": "sea_water_pressure",
-    "PRESS (dbar)": "sea_water_pressure",
+    "PRESS_dbar": "sea_water_pressure",
     "SDP_850": "sea_water_pressure",
     "P_4023": "sea_water_pressure_due_to_sea_water",
     "u_1205": "eastward_sea_water_velocity",
@@ -43,9 +43,9 @@ standard_names = {
     "T_28": "sea_water_temperature",
     "T_20": "sea_water_temperature",
     "Tx_1211": "sea_water_temperature",
-    "T(W) (C)": "sea_water_temperature",
+    "TW_C": "sea_water_temperature",
     "pHT": "sea_water_ph_reported_on_total_scale",
-    "OXYGEN (mg/L)": "mass_concentration_of_oxygen_in_sea_water",
+    "OXYGEN_mg_L": "mass_concentration_of_oxygen_in_sea_water",
     "C_50": "sea_water_electrical_conductivity",
     "C_51": "sea_water_electrical_conductivity",
     "S_41": "sea_water_salinity",
@@ -110,13 +110,14 @@ def assign_standard_names(ds):
             if "cell_methods" not in ds[k].attrs:
                 ds[k].attrs["cell_methods"] = cell_methods[k]
 
-    if "T_28" in ds:
-        if ds["T_28"].attrs["units"] == "C":
-            ds["T_28"].attrs["units"] = "degree_C"
-            
-    if "T_20" in ds:
-        if ds["T_20"].attrs["units"] == "C":
-            ds["T_20"].attrs["units"] = "degree_C"
+    for k in ["T_28", "T_20"]:
+        if k in ds:
+            if ds[k].attrs["units"] == "C":
+                ds[k].attrs["units"] = "degree_C"
+    
+    if "TW_C" in ds:
+        if "units" not in ds["TW_C"].attrs:
+            ds["TW_C"].attrs["units"] = "degree_C"
 
     if "Tx_1211" in ds:
         if (
@@ -144,6 +145,9 @@ def assign_standard_names(ds):
         else:
             ds["burst"].attrs["units"] = "1"
 
+    if "PRESS_dbar" in ds:
+        ds["PRESS_dbar"].attrs["units"] = "dbar"
+        
     if "P_1" in ds:
         if ds["P_1"].attrs["units"] == "DB":
             ds["P_1"].attrs["units"] = "dbar"
@@ -156,6 +160,18 @@ def assign_standard_names(ds):
         if ds["C_50"].attrs["units"] == "mmho/cm":
             # mho is an "unaccepted special name for an SI unit"
             ds["C_50"].attrs["units"] = "mS cm-1"
+            
+    if "SALINITY" in ds:
+        if "units" not in ds["SALINITY"]:
+            ds["SALINITY"].attrs["units"] = "PSU"
+            
+    if "pHT" in ds:
+        if "units" not in ds["pHT"]:
+            ds['pHT'].attrs["units"] = "1"
+            
+    if "OXYGEN_mg_L" in ds:
+        if "units" not in ds["OXYGEN_mg_L"]:
+            ds['OXYGEN_mg_L'].attrs["units"] = "mg L-1"
 
     # rename attributes with a '.' in them (causes CF warning)
     for k in list(
