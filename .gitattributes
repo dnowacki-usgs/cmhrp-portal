@@ -1,0 +1,12 @@
+stellwagen/4242-a.cdf filter=lfs diff=lfs merge=lfs -text
+stellwagen/fix4241-a.cdf filter=lfs diff=lfs merge=lfs -text
+stellwagen/3821c1-a.cdf filter=lfs diff=lfs merge=lfs -text
+stellwagen/4233-a.cdf filter=lfs diff=lfs merge=lfs -text
+stellwagen/4241-a.cdf filter=lfs diff=lfs merge=lfs -text
+stellwagen/fix4054-a.nc filter=lfs diff=lfs merge=lfs -text
+stellwagen/fix4232-a.cdf filter=lfs diff=lfs merge=lfs -text
+stellwagen/fix4233-a.cdf filter=lfs diff=lfs merge=lfs -text
+stellwagen/fix4242-a.cdf filter=lfs diff=lfs merge=lfs -text
+stellwagen/4054-a.nc filter=lfs diff=lfs merge=lfs -text
+stellwagen/4232-a.cdf filter=lfs diff=lfs merge=lfs -text
+stellwagen/fix3821c1-a.cdf filter=lfs diff=lfs merge=lfs -text
