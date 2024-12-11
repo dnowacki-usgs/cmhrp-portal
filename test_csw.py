@@ -3,6 +3,8 @@
 from owslib.csw import CatalogueServiceWeb
 from owslib import fes
 import numpy as np
+import os
+os.environ['REQUESTS_CA_BUNDLE'] = '/Users/dnowacki/Documents/cacert.pem'
 # %%
 # endpoint = 'http://geoport.whoi.edu/csw'
 # endpoint = 'http://gamone.whoi.edu/csw'
@@ -23,7 +25,7 @@ except:
     print('GetDomain not supported')
 # %%
 # val = 'Grand Bay'
-val = 'Florida'
+val = 'reduced'
 #val = 'William Jones'
 filter1 = fes.PropertyIsLike(propertyname='apiso:AnyText',literal=('*%s*' % val),
                         escapeChar='\\',wildCard='*',singleChar='?')
